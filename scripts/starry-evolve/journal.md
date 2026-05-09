@@ -13,3 +13,12 @@ Tracking kernel improvements made by the starry-evolve framework.
 - **Test**: PASS on riscv64 QEMU (starryos-test)
 - **Regression**: No regressions detected
 
+## 2026-05-09 -- sys_get_mempolicy
+
+- **Analyzed**: `starry-analyze` identified sys_get_mempolicy as stub (warn!("Dummy"))
+- **Contract**: Linux get_mempolicy() on non-NUMA returns MPOL_DEFAULT (policy=0), zero nodemask. Both policy and nodemask are optional output (can be NULL).
+- **Fixed**: Replaced dummy stub with real write: `policy.vm_write(0)` and `nodemask.vm_write(0)` when non-NULL. Uses VmMutPtr trait on raw pointers (same pattern as sys_capget).
+- **Build**: PASS on riscv64
+- **Test**: PASS on riscv64 QEMU
+- **Regression**: No regressions detected
+

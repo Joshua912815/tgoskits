@@ -66,13 +66,19 @@ pub fn sys_setresgid(_rgid: u32, _egid: u32, _sgid: u32) -> AxResult<isize> {
 }
 
 pub fn sys_get_mempolicy(
-    _policy: *mut i32,
-    _nodemask: *mut usize,
+    policy: *mut i32,
+    nodemask: *mut usize,
     _maxnode: usize,
     _addr: usize,
     _flags: usize,
 ) -> AxResult<isize> {
-    warn!("Dummy get_mempolicy called");
+    debug!("sys_get_mempolicy");
+    if !policy.is_null() {
+        policy.vm_write(0)?; // MPOL_DEFAULT
+    }
+    if !nodemask.is_null() {
+        nodemask.vm_write(0)?;
+    }
     Ok(0)
 }
 
