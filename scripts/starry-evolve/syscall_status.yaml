@@ -1,0 +1,5 @@
+# StarryOS Syscall Status Tracking
+# Updated by starry-evolve skills
+# Status values: DISCOVERED, ANALYZED, CONTRACTED, IMPLEMENTED, TESTED, VERIFIED
+
+syscalls: []

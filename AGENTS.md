@@ -15,3 +15,16 @@
 - If `cargo xtask` cannot satisfy a special configuration, inspect the `xtask` flow first and only then fall back to native Cargo commands with manually matched arguments.
 - For PRs, issues, review replies, discussions, and similar project-facing submissions, keep the language neutral and project-focused.
 - Do not insert agent-related labels, signatures, branding, or other advertisement-style wording such as `codex`, `agent`, `AI`, or similar self-promotional tags unless the user explicitly requests it.
+
+## StarryOS Evolution Skills
+
+- `starry-analyze`: Audit syscall coverage and find kernel issues
+- `starry-contract`: Extract Linux syscall contracts and compare with StarryOS implementation
+- `starry-fix`: Implement or fix kernel syscalls following Linux behavior
+- `starry-test`: Generate and run user-space test cases for syscalls
+- `starry-verify`: Full regression verification across all supported architectures
+- `starry-iterate`: Autonomous ANALYZE→CONTRACT→FIX→TEST→VERIFY loop (use with `/loop`)
+- `starry-report`: Generate progress reports from journal and status files
+
+Use `starry-iterate` for autonomous improvement sessions. Use individual skills for targeted work.
+All kernel improvement state is tracked in `scripts/starry-evolve/`.
