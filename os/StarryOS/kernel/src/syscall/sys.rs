@@ -121,8 +121,9 @@ pub fn sys_getrandom(buf: *mut u8, len: usize, flags: u32) -> AxResult<isize> {
 }
 
 pub fn sys_seccomp(_op: u32, _flags: u32, _args: *const ()) -> AxResult<isize> {
-    warn!("dummy sys_seccomp");
-    Ok(0)
+    // StarryOS does not implement any seccomp operations.
+    // Linux returns ENOSYS when CONFIG_SECCOMP_FILTER is disabled.
+    Err(AxError::Unsupported)
 }
 
 #[cfg(target_arch = "riscv64")]
