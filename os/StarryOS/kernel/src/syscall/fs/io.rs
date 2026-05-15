@@ -38,7 +38,7 @@ pub fn sys_dummy_fd(sysno: Sysno) -> AxResult<isize> {
         // other strategies.
         return Err(AxError::Unsupported);
     }
-    warn!("Dummy fd created: {sysno}");
+    debug!("Dummy fd created: {sysno}");
     DummyFd.add_to_fd_table(false).map(|fd| fd as isize)
 }
 
