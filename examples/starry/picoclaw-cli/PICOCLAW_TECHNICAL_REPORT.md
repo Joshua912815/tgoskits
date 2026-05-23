@@ -8,6 +8,50 @@
 
 本节整理从零开始演示 StarryOS 上 PicoClaw 功能的完整命令流程，分为 Mac host、Docker 容器、StarryOS QEMU guest 三层。
 
+请先区分三个环境：
+
+| 环境 | 提示符示例 | 能做什么 | 是否能直接运行 `picoclaw` |
+|------|------------|----------|----------------------------|
+| Mac host | `joshua@Mac ...` | 进入仓库、启动 Docker、一键运行交互脚本 | 否，除非你本机另外安装了 PicoClaw |
+| Docker 容器 | `root@<container>:/mnt#` | 编译 StarryOS、准备 rootfs、启动 QEMU | 否，`picoclaw` 只被注入到 rootfs 镜像里 |
+| StarryOS guest | `root@starry:/root #` | 真正运行 StarryOS 和 PicoClaw | 是 |
+
+因此，执行完 `prepare_picoclaw_rootfs.sh` 后，在 Docker 容器里输入
+`picoclaw status` 出现 `command not found` 是正常的。这个脚本只是生成一个
+“包含 PicoClaw 的 StarryOS rootfs 镜像”，还没有启动 StarryOS。必须继续运行
+`cargo xtask starry qemu ... --rootfs ...`，进入 `root@starry:` 提示符后才有
+`picoclaw` 命令。
+
+### 1.0 推荐演示路线
+
+如果是 Mac 上给老师演示，推荐直接在 **Mac host** 的仓库根目录运行：
+
+```bash
+cd /Users/joshua/tmp/tgoskits-picoclaw
+PICOCLAW_API_KEY=sk-... examples/starry/picoclaw-cli/run_picoclaw_interactive.sh
+```
+
+这个脚本会自动：
+
+1. 检查 Docker 和 `starryos-dev:ubuntu-qemu10.2.1` 镜像。
+2. 创建或复用 `tmp/axbuild/rootfs/rootfs-x86_64-picoclaw-user.img`。
+3. 把 PicoClaw、API 配置和 `.security.yml` 注入 rootfs。
+4. 启动 StarryOS x86_64 QEMU。
+5. 进入 `root@starry:` 后让你手动运行 PicoClaw。
+
+进入 StarryOS 后再输入：
+
+```bash
+picoclaw status
+picoclaw model
+picoclaw agent -m "你好，请用一句话介绍你自己"
+picoclaw agent
+picoclaw gateway --allow-empty --host 127.0.0.1 --port 18790
+```
+
+如果已经进入 Docker 容器，请不要运行 `run_picoclaw_interactive.sh`，它是给 Mac
+host 调用的外层脚本。Docker 容器内请按 1.3 和 1.7.2 的命令手动启动 QEMU。
+
 ### 1.1 进入隔离仓库
 
 ```bash
@@ -27,12 +71,26 @@ docker run -it --rm \
   starryos-dev:ubuntu-qemu10.2.1
 ```
 
+进入容器后，提示符一般类似：
+
+```text
+root@ff4cef462a83:/mnt#
+```
+
+这是 Docker 容器，不是 StarryOS。此时不能直接运行 `picoclaw status`。
+
 容器内需确认以下工具可用：
 
 ```bash
 command -v debugfs        # ext4 rootfs 文件注入
 command -v qemu-system-x86_64  # QEMU 模拟器
 command -v cargo           # Rust 构建工具
+```
+
+建议在容器里先设置 QEMU 和交叉工具链路径：
+
+```bash
+export PATH=/opt/qemu-10.2.1/bin:/opt/x86_64-linux-musl-cross/bin:$PATH
 ```
 
 ### 1.3 准备 PicoClaw rootfs
@@ -61,6 +119,14 @@ examples/starry/picoclaw-cli/prepare_picoclaw_rootfs.sh \
   --output-rootfs tmp/axbuild/rootfs/rootfs-x86_64-picoclaw-online.img \
   --proxy http://10.0.2.2:7890
 ```
+
+执行完成后，应该继续启动 StarryOS QEMU。不要在 Docker 容器里直接执行：
+
+```bash
+picoclaw status
+```
+
+因为此时 PicoClaw 在 rootfs 镜像中，不在 Docker 容器的 `/usr/local/bin` 里。
 
 **Mimo API 配置说明：**
 
@@ -150,11 +216,43 @@ STARRY_PICOCLAW_GATEWAY_PASSED
 
 ### 1.7 交互式长期使用
 
+#### 1.7.1 Mac host 一键启动方式
+
+在 **Mac host** 的仓库根目录执行：
+
 ```bash
 PICOCLAW_API_KEY=... examples/starry/picoclaw-cli/run_picoclaw_interactive.sh
 ```
 
 脚本默认创建或复用 `tmp/axbuild/rootfs/rootfs-x86_64-picoclaw-user.img`，启动不带自动退出条件的 StarryOS shell。
+
+#### 1.7.2 Docker 容器内手动启动方式
+
+如果你已经在 Docker 容器里，并且已经执行过：
+
+```bash
+PICOCLAW_API_KEY=sk-... \
+examples/starry/picoclaw-cli/prepare_picoclaw_rootfs.sh \
+  --output-rootfs tmp/axbuild/rootfs/rootfs-x86_64-picoclaw-online.img \
+  --proxy http://10.0.2.2:7890
+```
+
+那么下一步应该在同一个 Docker 容器里启动 StarryOS QEMU：
+
+```bash
+export PATH=/opt/qemu-10.2.1/bin:/opt/x86_64-linux-musl-cross/bin:$PATH
+
+cargo xtask starry qemu \
+  --arch x86_64 \
+  --qemu-config examples/starry/picoclaw-cli/qemu-x86_64-picoclaw-interactive.toml \
+  --rootfs tmp/axbuild/rootfs/rootfs-x86_64-picoclaw-online.img
+```
+
+看到类似下面的提示符后，才表示已经进入 StarryOS guest：
+
+```text
+root@starry:/root/.picoclaw/workspace #
+```
 
 进入 StarryOS 后可执行：
 
@@ -185,7 +283,7 @@ curl http://127.0.0.1:18790/health
 
 ### 1.8 便捷演示脚本
 
-如果要从 Docker 环境开始，逐步演示 PicoClaw 在线对话全过程：
+如果要在 **Mac host** 上逐步演示 PicoClaw 在线对话全过程：
 
 ```bash
 PICOCLAW_API_KEY=... examples/starry/picoclaw-cli/demo_picoclaw_agent.sh
