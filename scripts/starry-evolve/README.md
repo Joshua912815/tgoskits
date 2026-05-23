@@ -1,5 +1,55 @@
 # starry-evolve: AI 驱动的 StarryOS 内核持续改进框架
 
+## 严格 verifier 模式
+
+当前框架的通过判定以 `scripts/starry-evolve/evolve.py` 为统一入口：
+
+- 契约事实写入 `contracts/<syscall>.yaml`，Markdown 只作为渲染产物。
+- 契约只定义 `cases` 和 `compare` 字段；Linux Docker 运行输出就是运行时 oracle，不在 YAML 中手写 oracle。
+- 同一个测试程序必须在 Linux Docker 和 StarryOS QEMU 两边输出带 `run_id`、`case_id`、`ret`、`errno`、`observable`、`checksum` 的 JSONL。
+- `test_runner.py` 只接受 verifier JSONL，并按 case 对比 Linux/StarryOS；终端里的 `PASS` / `PASSED` 文本会被拒绝。
+- `reports/latest.json` 记录两端命令、退出码、contract hash、源码 hash、二进制 hash、git diff hash、两端 raw log hash。
+- `baseline.json` 是 syscall/target/case 级别基线，只有同一 case 从通过变失败才算回归。
+- `syscall_status.yaml` 和 `journal.md` 的 VERIFIED 结果只能通过 `evolve.py record --report <report>` 从 verifier report 派生。
+- `evolve.py record` 会拒绝 schema 不匹配或 `git_diff_hash` 与当前 diff 不一致的 verifier report。
+
+## 当前可展示闭环
+
+这个框架目前已经有一个轻量级、可运行的端到端展示路径：`syncfs` 在 `x86_64` 上做 Linux Docker vs StarryOS QEMU 对拍。
+
+演示前先检查框架资产和 Docker 环境：
+
+```bash
+python3 scripts/starry-evolve/evolve.py doctor
+```
+
+查看当前契约、基线和最新 verifier report：
+
+```bash
+python3 scripts/starry-evolve/evolve.py status
+```
+
+运行完整对拍：
+
+```bash
+scripts/starry-evolve/run_syncfs_pair.sh x86_64
+```
+
+成功后会生成：
+
+- `scripts/starry-evolve/reports/latest.json`
+- `scripts/starry-evolve/reports/<date>_syncfs_x86_64_<run_id>.json`
+- 对应的 `.linux.log` 和 `.starry.log`
+
+这些报告由 verifier 写入，默认被 git 忽略。需要把结果纳入状态文件时，再执行：
+
+```bash
+python3 scripts/starry-evolve/evolve.py record --report scripts/starry-evolve/reports/latest.json
+```
+
+当前试点覆盖面是有意收窄的：先证明“Linux oracle + StarryOS QEMU + 结构化 verifier + report/status 流转”可以跑通，再逐步扩展到更多 syscall 和架构。
+
+
 ## 一、这个系统是什么
 
 starry-evolve 是一个**让 AI 自主发现并修复操作系统内核 bug 的自动化框架**。
@@ -443,23 +493,34 @@ python3 scripts/starry-evolve/build_checker.py --repo-root . --archs riscv64,aar
 
 **支持的架构**：riscv64、aarch64、x86_64、loongarch64
 
-### 7.4 `test_runner.py` — QEMU 测试执行
+### 7.4 `test_runner.py` — Linux Docker / StarryOS QEMU 对拍
 
 **文件位置**：`scripts/starry-evolve/test_runner.py`
 
 **用法**：
 ```bash
-# 运行测试
-python3 scripts/starry-evolve/test_runner.py --repo-root . --target riscv64
+# syncfs x86_64 end-to-end smoke test
+scripts/starry-evolve/run_syncfs_pair.sh x86_64
+
+# 运行对拍测试
+python3 scripts/starry-evolve/test_runner.py \
+  --repo-root . \
+  --syscall syncfs \
+  --target x86_64 \
+  --linux-command 'docker run --rm -e STARRY_EVOLVE_RUN_ID -v "$PWD":/mnt -w /mnt starryos-dev:ubuntu-qemu10.2.1 /opt/qemu-10.2.1/bin/qemu-x86_64 /mnt/target/starry-evolve/starry-evolve-syncfs' \
+  --starry-command 'docker run --rm -v "$PWD":/mnt -w /mnt starryos-dev:ubuntu-qemu10.2.1 bash -lc '\''export PATH=/opt/qemu-10.2.1/bin:$PATH; cargo xtask starry test qemu --target x86_64 --timeout 40 --shell-init-cmd "STARRY_EVOLVE_RUN_ID={run_id} /usr/bin/starry-evolve-syncfs && echo All tests passed!"'\'''
+
 # 运行并更新基线
-python3 scripts/starry-evolve/test_runner.py --repo-root . --target riscv64 --update-baseline
+python3 scripts/starry-evolve/test_runner.py ... --update-baseline
 ```
 
 **工作原理**：
-1. 运行 `cargo xtask starry test qemu --target <arch>`
-2. 捕获 stdout/stderr，解析结果
-3. 如果指定 `--update-baseline`，将结果写入 `baseline.json`
-4. 超时 120 秒
+1. 生成随机 `run_id`，并通过 `STARRY_EVOLVE_RUN_ID` 传给两端命令
+2. 运行 Linux Docker 命令，捕获 JSONL 输出
+3. 运行 StarryOS QEMU 命令，捕获 JSONL 输出
+4. 只接受带 run_id、case_id、checksum 的结构化 JSONL
+5. 按 contract 的 `cases[].compare` 对比 Linux 和 StarryOS 的 `ret/errno/observable`
+6. 如果指定 `--update-baseline`，将结果写入 `baseline.json`
 
 ### 7.5 `regression_diff.py` — 回归对比
 
@@ -587,7 +648,7 @@ scripts/starry-evolve/                    ← 框架根目录
 ├── syscall_audit.py                      ← 工具：审计 syscall 分发表
 ├── stub_scanner.py                       ← 工具：扫描桩函数和不完整实现
 ├── build_checker.py                      ← 工具：多架构编译检查
-├── test_runner.py                        ← 工具：QEMU 测试执行
+├── test_runner.py                        ← 工具：Linux Docker / StarryOS QEMU 对拍
 ├── regression_diff.py                    ← 工具：回归对比
 ├── syscall_status.yaml                   ← 状态：syscall 跟踪
 ├── journal.md                            ← 状态：操作日志
@@ -651,4 +712,3 @@ AGENTS.md                                 ← 追加了 StarryOS Evolution Skill
 这会自动重复以下循环：选择目标 → 分析 → 修复 → 测试 → 验证 → 记录 → 选择下一个目标...
 
 ---
-

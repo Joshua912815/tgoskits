@@ -1,0 +1,17 @@
+schema_version: 1
+syscall: syncfs
+status: CONTRACTED
+linux_sources:
+  - type: man-pages
+    reference: "syncfs(2)"
+    note: "syncfs(fd) synchronizes the filesystem containing fd."
+  - type: linux-kernel
+    reference: "fs/sync.c: SYSCALL_DEFINE1(syncfs, int, fd)"
+    note: "Linux validates fd and returns EBADF for invalid descriptors."
+cases:
+  - case_id: syncfs_invalid_fd_ebadf
+    description: "syncfs(-1) fails with EBADF"
+    compare:
+      ret: true
+      errno: true
+      observable: true

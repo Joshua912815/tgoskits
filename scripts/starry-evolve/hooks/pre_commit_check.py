@@ -7,7 +7,13 @@ cargo fmt and clippy pass. Warns on failure.
 
 import subprocess
 import sys
+import json
 from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(SCRIPT_DIR))
+
+from verifier import REPORT_SCHEMA_VERSION, git_diff_hash
 
 
 def find_repo_root():
@@ -54,6 +60,26 @@ def check_clippy(repo_root: Path):
         return False, "clippy check timed out"
 
 
+def check_verifier_report(repo_root: Path):
+    report_path = repo_root / "scripts" / "starry-evolve" / "reports" / "latest.json"
+    if not report_path.exists():
+        return False, "No verifier report found at scripts/starry-evolve/reports/latest.json"
+    try:
+        report = json.loads(report_path.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        return False, f"Could not read verifier report: {exc}"
+    if report.get("schema_version") != REPORT_SCHEMA_VERSION:
+        return False, f"Unsupported verifier report schema: {report.get('schema_version')}"
+    if not report.get("run_id") or not report.get("syscall") or not report.get("case_results"):
+        return False, "Latest verifier report is missing required identity or case fields"
+    if not report.get("success"):
+        return False, f"Latest verifier report is not successful: {report.get('run_id')}"
+    current_hash = git_diff_hash(repo_root)
+    if report.get("git_diff_hash") != current_hash:
+        return False, "Latest verifier report does not match the current git diff hash"
+    return True, ""
+
+
 def main():
     repo_root = find_repo_root()
     if not repo_root:
@@ -71,6 +97,10 @@ def main():
     clippy_ok, clippy_out = check_clippy(repo_root)
     if not clippy_ok:
         warnings.append("CLIPPY: Issues found. Run `cargo xtask clippy --package starry-kernel` to see details.")
+
+    verifier_ok, verifier_out = check_verifier_report(repo_root)
+    if not verifier_ok:
+        warnings.append(f"VERIFIER: {verifier_out}")
 
     if warnings:
         print("[starry-evolve pre-commit check]")

@@ -1,0 +1,17 @@
+schema_version: 1
+syscall: sync
+status: CONTRACTED
+linux_sources:
+  - type: man-pages
+    reference: "sync(2)"
+    note: "sync() schedules dirty filesystem buffers for writeback and reports no errno to user space."
+  - type: linux-kernel
+    reference: "fs/sync.c: SYSCALL_DEFINE0(sync)"
+    note: "Linux returns 0 after iterating superblocks and block devices."
+cases:
+  - case_id: sync_returns_zero
+    description: "sync() succeeds and reports no errno"
+    compare:
+      ret: true
+      errno: true
+      observable: true

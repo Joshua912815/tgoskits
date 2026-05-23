@@ -14,7 +14,10 @@ description: 自主执行 StarryOS 内核改进的完整迭代循环。自动选
 ### Phase 1: 选择目标
 
 1. 运行 `starry-analyze` 分析当前内核状态
-2. 从 `scripts/starry-evolve/syscall_status.yaml` 中选择最高优先级的目标
+2. 通过统一入口选择目标：
+   ```
+   python3 scripts/starry-evolve/evolve.py select
+   ```
 3. 优先级规则：
    - 安全相关的 stub（`todo!()` 等 panic 风险）
    - 被 busybox 等应用广泛使用的 syscall
@@ -24,7 +27,10 @@ description: 自主执行 StarryOS 内核改进的完整迭代循环。自动选
 ### Phase 2: 分析契约
 
 1. 对选定目标运行 `starry-contract`
-2. 确认实现差异和修复方案
+2. 确认 `scripts/starry-evolve/contracts/<syscall>.yaml` 通过：
+   ```
+   python3 scripts/starry-evolve/evolve.py contract --syscall <syscall>
+   ```
 3. 如果差异过于复杂，跳过此目标，选择下一个
 
 ### Phase 3: 实现修复
@@ -34,14 +40,15 @@ description: 自主执行 StarryOS 内核改进的完整迭代循环。自动选
 
 ### Phase 4: 测试验证
 
-1. 运行 `starry-test` 生成和运行测试
-2. 运行 `starry-verify` 进行回归检测
+1. 运行 `starry-test` 生成 verifier JSONL 测试
+2. 通过 `python3 scripts/starry-evolve/evolve.py test --syscall <syscall> --linux-command '<linux/docker command>' --starry-command '<starry qemu command>'` 生成对拍 verifier report
+3. 运行 `python3 scripts/starry-evolve/evolve.py verify --repo-root .` 做 case-level 回归检测
 
 ### Phase 5: 记录结果
 
 - 如果全部通过：
-  - 更新 `scripts/starry-evolve/journal.md` 记录成功
-  - 更新 `scripts/starry-evolve/syscall_status.yaml` 状态为 VERIFIED
+  - 通过 `python3 scripts/starry-evolve/evolve.py record --report scripts/starry-evolve/reports/latest.json` 记录成功
+  - VERIFIED 状态只能从 verifier report 派生
   - 提示用户可以提交变更
 - 如果有失败：
   - 回滚代码变更
@@ -62,4 +69,6 @@ description: 自主执行 StarryOS 内核改进的完整迭代循环。自动选
 - 不要在失败的修复上反复尝试超过 2 次
 - 所有代码变更必须通过 clippy + fmt + 编译
 - 不要提交未通过验证的变更
+- 不要手写 PASS/PASSED、VERIFIED、journal 成功项；必须引用 verifier report 的 run_id
+- 不要手写 Linux oracle；Linux Docker 输出就是运行时 oracle，StarryOS 必须与其对拍
 - 严格遵循 AGENTS.md 中的所有规则

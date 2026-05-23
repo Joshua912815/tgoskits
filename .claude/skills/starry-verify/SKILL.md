@@ -23,15 +23,16 @@ description: 对 StarryOS 内核变更进行全面的回归验证。跨所有支
 
 3. **多架构构建验证**：
    ```
-   python3 scripts/starry-evolve/build_checker.py --repo-root . --format markdown
+   python3 scripts/starry-evolve/evolve.py build --repo-root . --format markdown
    ```
    验证所有支持架构（riscv64, aarch64, x86_64, loongarch64）能成功编译。
 
-4. **QEMU 测试**：
-   对每个架构运行：
+4. **QEMU verifier 测试**：
+   对目标 syscall 和架构运行统一入口：
    ```
-   cargo xtask starry test qemu --target <arch>
+   python3 scripts/starry-evolve/evolve.py test --syscall <syscall> --target <arch> --linux-command '<linux/docker command>' --starry-command '<starry qemu command>'
    ```
+   只接受 verifier report，不接受手写 PASS/PASSED 文本。
 
 5. **ArceOS 回归**（可选，检查共享模块）：
    ```
@@ -40,13 +41,13 @@ description: 对 StarryOS 内核变更进行全面的回归验证。跨所有支
 
 6. **回归对比**：
    ```
-   python3 scripts/starry-evolve/regression_diff.py --repo-root . --format markdown
+   python3 scripts/starry-evolve/evolve.py verify --repo-root . --format markdown
    ```
-   与 `baseline.json` 对比，检测回归和改进。
+   与 case-level `baseline.json` 对比，只有同一 syscall/arch/case 从通过变失败才算回归。
 
 7. **更新基线**（如果全部通过）：
    ```
-   python3 scripts/starry-evolve/test_runner.py --repo-root . --target riscv64 --update-baseline
+   python3 scripts/starry-evolve/evolve.py test --syscall <syscall> --target riscv64 --linux-command '<linux/docker command>' --starry-command '<starry qemu command>' --update-baseline
    ```
 
 8. **生成报告**：

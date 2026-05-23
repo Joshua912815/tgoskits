@@ -1,1 +1,6 @@
-[]
+{
+  "schema_version": 1,
+  "source_report": null,
+  "git_diff_hash": null,
+  "cases": []
+}

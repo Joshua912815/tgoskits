@@ -22,22 +22,22 @@ instructions: |
      cargo xtask starry build --arch riscv64
      ```
 
-  3. Run the test suite:
+  3. Run the deterministic verifier for the target syscall:
      ```
-     cargo xtask starry test qemu --target riscv64
+     python3 scripts/starry-evolve/evolve.py test --syscall <syscall> --target riscv64 --linux-command '<linux/docker command>' --starry-command '<starry qemu command>'
      ```
 
-  4. If available, run the regression comparison:
+  4. Run the case-level regression comparison:
      ```
-     python3 scripts/starry-evolve/regression_diff.py --repo-root .
+     python3 scripts/starry-evolve/evolve.py verify --repo-root .
      ```
 
   ## Output Format
 
   Report:
   - BUILD: PASS/FAIL per architecture
-  - TEST: PASS/FAIL per target
+  - VERIFIER_REPORT: path and run_id from scripts/starry-evolve/reports/latest.json
   - REGRESSIONS: List of any tests that went from pass to fail
   - IMPROVEMENTS: List of any tests that went from fail to pass
 
-  If there are regressions, identify which commit introduced them and what files are likely responsible.
+  Do not declare final TEST PASS from terminal text. Final pass/fail must come from the verifier report.

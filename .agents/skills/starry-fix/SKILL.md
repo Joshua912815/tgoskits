@@ -10,8 +10,9 @@ description: 实现或修复 StarryOS 内核中的 syscall。根据契约文档�
 ## 前置条件
 
 修复前必须完成：
-- 阅读目标 syscall 在 `scripts/starry-evolve/contracts/` 下的契约文档
-- 如果没有契约文档，先使用 `starry-contract` 技能生成
+- 目标 syscall 必须有 `scripts/starry-evolve/contracts/<syscall>.yaml`
+- 必须先运行 `python3 scripts/starry-evolve/evolve.py contract --syscall <syscall>` 并通过校验
+- 如果没有机器契约，先使用 `starry-contract` 技能生成；不要只根据 Markdown 或模型记忆修复
 
 ## 工作流程
 
@@ -41,8 +42,8 @@ description: 实现或修复 StarryOS 内核中的 syscall。根据契约文档�
    ```
 
 5. **更新状态**：
-   - 更新 `scripts/starry-evolve/syscall_status.yaml` 中的状态为 IMPLEMENTED
-   - 在 `scripts/starry-evolve/journal.md` 中记录变更
+   - 不要手写 VERIFIED/PASS
+   - 只有 verifier report 可以通过 `python3 scripts/starry-evolve/evolve.py record --report <report>` 更新 VERIFIED 状态
 
 ## 编码规范
 

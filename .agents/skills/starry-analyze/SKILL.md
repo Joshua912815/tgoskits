@@ -11,15 +11,15 @@ description: 分析 StarryOS 内核的 syscall 覆盖率和实现状态，发现
 
 1. 运行确定性分析工具：
    ```
-   python3 scripts/starry-evolve/syscall_audit.py --repo-root . --format markdown
+   python3 scripts/starry-evolve/evolve.py audit --format markdown
    ```
-   这会解析 `os/StarryOS/kernel/src/syscall/mod.rs` 中的 dispatch 表，分类每个 syscall 的实现状态。
+   这会解析 `os/StarryOS/kernel/src/syscall/mod.rs` 中的 dispatch 表，分类每个 syscall 的实现状态，并输出 handler 文件、行号、证据和置信度。
 
 2. 运行 stub 扫描工具：
    ```
-   python3 scripts/starry-evolve/stub_scanner.py --repo-root . --format markdown
+   python3 scripts/starry-evolve/evolve.py select
    ```
-   这会扫描内核源码中所有 stub 和不完整的实现。
+   这会基于确定性审计结果选择下一候选目标。不要绕过统一入口直接进入修复。
 
 3. 综合两个工具的输出，生成改进目标列表，按子系统分组：
    - fs (文件系统)
@@ -37,7 +37,7 @@ description: 分析 StarryOS 内核的 syscall 覆盖率和实现状态，发现
    - 安全相关的 stub（如 `todo!()` 会导致 panic）
    - 容易验证的改进（有明确的 Linux 行为作为对照）
 
-5. 更新 `scripts/starry-evolve/syscall_status.yaml`，记录发现的 syscall 状态。
+5. 状态更新必须由 `evolve.py record --report <report>` 从 verifier report 派生；分析阶段不要手写 VERIFIED/PASS。
 
 ## 重要约束
 

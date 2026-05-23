@@ -28,3 +28,4 @@
 
 Use `starry-iterate` for autonomous improvement sessions. Use individual skills for targeted work.
 All kernel improvement state is tracked in `scripts/starry-evolve/`.
+Use `scripts/starry-evolve/evolve.py` as the unified entrypoint for evolve workflows. Do not hand-write PASS/PASSED, VERIFIED, journal success entries, or syscall status success entries; successful verification must come from `scripts/starry-evolve/reports/latest.json`.
