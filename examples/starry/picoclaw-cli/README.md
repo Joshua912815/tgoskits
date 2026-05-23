@@ -7,6 +7,7 @@
 1. 离线 Smoke：验证静态 Linux x86_64 PicoClaw 二进制能启动、写入配置并执行本地 CLI。
 2. 在线 Agent：注入 API key、代理和 CA 后，验证 `picoclaw agent -m ...` 能完成一次模型请求。
 3. Gateway 服务：验证 `picoclaw gateway` 能在 StarryOS guest 中启动并响应本地 HTTP 健康检查。
+4. 交互式 Agent：验证裸 `picoclaw agent` 能直接读取键盘输入，完成多轮对话并用 `exit` 退出。
 
 ## 准备离线 rootfs
 
@@ -158,6 +159,8 @@ STARRY_PICOCLAW_AGENT_PASSED
 中间还会看到多段 `PicoClaw chat`，用于现场展示 StarryOS guest 内连续模型对话。
 
 ## 交互式长期使用
+
+Phase 4 的简要记录见 `PHASE4_TTY_READLINE.md`。
 
 如果希望进入 StarryOS 后自己持续输入 PicoClaw 命令，可以运行：
 
