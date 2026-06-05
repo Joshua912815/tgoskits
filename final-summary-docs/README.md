@@ -15,6 +15,11 @@
 
 ## 归档文档
 
+### 汇报材料
+
+- `slides/biglab-report.pptx`
+- `slides/biglab-report.pdf`
+
 ### 任务一
 
 - `task1-arceos-tutorial/report_task1.md`

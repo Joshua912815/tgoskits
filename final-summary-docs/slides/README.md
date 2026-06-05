@@ -2,3 +2,7 @@
 
 本目录用于存放最终汇报 slide 源文件、导出文件和提纲。
 
+## 文件
+
+- `biglab-report.pptx`：最终汇报 slide 源文件。
+- `biglab-report.pdf`：最终汇报 slide PDF 导出文件。
