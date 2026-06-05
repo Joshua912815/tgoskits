@@ -41,5 +41,10 @@
 - `task2-4-kpu-support-for-starry/k230-kpu-nncase-runtime-evidence.md`
 - `task2-4-kpu-support-for-starry/k230-kpu-nncase-runtime-status.md`
 - `task2-4-kpu-support-for-starry/k230-kpu-worklog.md`
+- `task2-4-kpu-support-for-starry/apps/starry/k230-kpu-nncase/README.md`
+- `task2-4-kpu-support-for-starry/docs/k230-kpu-nncase-runtime.md`
+- `task2-4-kpu-support-for-starry/docs/k230-kpu-nncase-runtime.zh.md`
+- `task2-4-kpu-support-for-starry/test-suit/starryos/k230-qemu/README.md`
+- `task2-4-kpu-support-for-starry/apps/starry/README.md`
 - `task2-4-picoclaw/README.md`
 - `task2-4-picoclaw/PICOCLAW_TECHNICAL_REPORT.md`
