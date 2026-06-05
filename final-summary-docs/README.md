@@ -7,4 +7,32 @@
 - `reports/`：每次实验报告。
 - `summary-report.md`：最终总结报告。
 - `slides/`：最终汇报 slide 与提纲。
+- `task1-arceos-tutorial/`：任务一 ArceOS tutorial 文档。
+- `task2-1-starry-evolve/`：任务二-1 Starry evolve 工具文档。
+- `task2-2-inotifywait/`：任务二-2 inotifywait 技术文档。
+- `task2-4-picoclaw/`：任务二-4 Picoclaw 文档。
 
+## 归档文档
+
+### 任务一
+
+- `task1-arceos-tutorial/report_task1.md`
+- `task1-arceos-tutorial/exercise-altalloc.md`
+- `task1-arceos-tutorial/exercise-hashmap.md`
+- `task1-arceos-tutorial/exercise-printcolor.md`
+- `task1-arceos-tutorial/exercise-ramfs-rename.md`
+- `task1-arceos-tutorial/exercise-sysmap.md`
+
+### 任务二-1
+
+- `task2-1-starry-evolve/README.md`
+- `task2-1-starry-evolve/DOCUMENTATION.md`
+
+### 任务二-2
+
+- `task2-2-inotifywait/pr-894-inotifywait-technical-doc.md`
+
+### 任务二-4
+
+- `task2-4-picoclaw/README.md`
+- `task2-4-picoclaw/PICOCLAW_TECHNICAL_REPORT.md`
