@@ -10,6 +10,7 @@
 - `task1-arceos-tutorial/`：任务一 ArceOS tutorial 文档。
 - `task2-1-starry-evolve/`：任务二-1 Starry evolve 工具文档。
 - `task2-2-inotifywait/`：任务二-2 inotifywait 技术文档。
+- `task2-4-kpu-support-for-starry/`：任务二-4 K230 KPU support for Starry 文档。
 - `task2-4-picoclaw/`：任务二-4 Picoclaw 文档。
 
 ## 归档文档
@@ -34,5 +35,11 @@
 
 ### 任务二-4
 
+- `task2-4-kpu-support-for-starry/k230-kpu-qemu-adaptation.md`
+- `task2-4-kpu-support-for-starry/k230-kpu-runtime-route.md`
+- `task2-4-kpu-support-for-starry/k230-kpu-yolov8n-target.md`
+- `task2-4-kpu-support-for-starry/k230-kpu-nncase-runtime-evidence.md`
+- `task2-4-kpu-support-for-starry/k230-kpu-nncase-runtime-status.md`
+- `task2-4-kpu-support-for-starry/k230-kpu-worklog.md`
 - `task2-4-picoclaw/README.md`
 - `task2-4-picoclaw/PICOCLAW_TECHNICAL_REPORT.md`
