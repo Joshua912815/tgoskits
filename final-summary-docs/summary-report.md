@@ -208,14 +208,3 @@ K230 KPU/NPU 支持是本阶段技术跨度最大的一条线。它的目标是�
 AI 辅助开发方面，我的认识也更务实了。AI 适合做重复执行、检索、补丁草稿和测试补齐；但信任边界必须由确定性工具守住。尤其是在内核开发里，不能让“看起来通过”的输出替代 verifier，不能让手写状态替代真实报告，也不能让模型的解释替代 Linux 对拍和 QEMU 日志。
 
 K230 KPU 这条线让我体会到复杂系统适配中的分层推进价值。先跑通 QEMU K230 启动和 `/dev/kpu`，再做 fake output 和 runtime arg table smoke，再做 kunOS 54 条 command replay，最后推进 NNCase runtime。每一步都不是最终目标，但每一步都缩小了未知范围，也让后续定位问题更有依据。
-
-## 10. 后续工作
-
-后续可以继续推进以下方向：
-
-- `starry-evolve` 扩展到更多 syscall 和架构，把 syncfs 之外的对拍案例纳入 baseline。
-- inotify 继续补齐 rename、hardlink、inode 语义、事件合并和资源限制。
-- PicoClaw 继续验证微信 channel、长时间 gateway 运行和更复杂 TUI/terminal ioctl。
-- K230 KPU 继续对比 StarryOS QEMU KPU trace 与 kunOS reference，定位 YOLO output 语义差异。
-- 长期目标是去掉 NNCase demo 中 `_Exit(0)` 清理 workaround，修正官方 MMZ allocator 在 Starry/Linux ABI shim 下的释放路径。
-- 将 K230 NNCase runtime 从“可展示 app/test”进一步整理成稳定、可重复的课程验收流程。
